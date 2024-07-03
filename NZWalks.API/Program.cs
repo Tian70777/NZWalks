@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NZWalks.API.Data;
+using NZWalks.API.Repositories;
 using NZWalks.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +23,13 @@ builder.Services.AddDbContext<NZWalksDbContext>(options =>
 //});
 builder.Services.AddHttpClient();
 builder.Services.AddTransient<WeatherService>();
+
+// add life time to interface and implementation
+// whenever using IRegionRepository, pass the concret implementation of SQLRegionRepository
+builder.Services.AddTransient<IRegionRepository, SQLRegionRepository>();
+
+// easy to change db store
+//builder.Services.AddTransient<IRegionRepository, InMemoryRegionRepository>();
 
 
 var app = builder.Build();
