@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NZWalks.API.Data;
+using NZWalks.API.Mappings;
 using NZWalks.API.Repositories;
 using NZWalks.API.Services;
 
@@ -30,6 +31,9 @@ builder.Services.AddTransient<IRegionRepository, SQLRegionRepository>();
 
 // easy to change db store
 //builder.Services.AddTransient<IRegionRepository, InMemoryRegionRepository>();
+
+// inject automapper
+builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
 
 var app = builder.Build();
