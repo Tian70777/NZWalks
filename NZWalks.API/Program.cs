@@ -28,6 +28,7 @@ builder.Services.AddTransient<WeatherService>();
 // add life time to interface and implementation
 // whenever using IRegionRepository, pass the concret implementation of SQLRegionRepository
 builder.Services.AddTransient<IRegionRepository, SQLRegionRepository>();
+builder.Services.AddTransient<IWalkRepository, SQLWalkRepository>();
 
 // easy to change db store
 //builder.Services.AddTransient<IRegionRepository, InMemoryRegionRepository>();
