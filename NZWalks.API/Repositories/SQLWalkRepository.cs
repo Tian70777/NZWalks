@@ -20,7 +20,7 @@ namespace NZWalks.API.Repositories
             return walk;
         }
 
-        public async Task<List<Walk>> GetWalksAsync()
+        public async Task<List<Walk>> GetWalksAsync(string? filterOn = null, string? filterQuery = null)
         {
             /* cau use a string in Include to include the region
             // to make it type-safe, can use a lambda expression (x => x.Difficulty)
@@ -28,10 +28,25 @@ namespace NZWalks.API.Repositories
             // which means the repository will be generic and can't use lambda expression
             // and by using generic repository pattern, can use the same repository for all the entities
             */
-            return await dbContext.Walks
-                .Include("Difficulty")
-                .Include("Region")
-                .ToListAsync();
+            // return await dbContext.Walks.Include("Difficulty").Include("Region").ToListAsync();
+
+            /* retrieve all walks: 
+             * if there is any walk, walsk becomes type IQueryable<Walk>, instead of a list
+             * so can filtering, sorting, then pagination,
+             * at the very end, return the awaited ToListAsync result
+             * */
+            var walks = dbContext.Walks.Include("Difficulty").Include("Region").AsQueryable();
+
+            // 1. apply filter
+            if(string.IsNullOrWhiteSpace(filterOn) == false && string.IsNullOrWhiteSpace(filterQuery) == false)
+            {
+                if(filterOn.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+                    walks = walks.Where(x => x.Name.Contains(filterQuery));
+                }
+            }
+
+            return await walks.ToListAsync();
         }
         public async Task<Walk?> GetByIdAsync(Guid id)
         {
