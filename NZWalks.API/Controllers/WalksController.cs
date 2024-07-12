@@ -34,12 +34,25 @@ namespace NZWalks.API.Controllers
             return Ok(walkDto);
         }
 
-        // add filter Name, 
-        // :api/walks?filterOn=Name&filterValue=Track
+        /* 1. Filtering: 
+         *              add nullable filter Name(which column), filter query(which word to filter).
+         * 2. Sorting: 
+         *              [FromQuery] string? sortBy, [FromQuery] bool? isAscending = true
+         *              in method parameter, isAscending ?? true
+         *  3. Pagination:
+         *              [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000
+         *              
+        // :api/walks?filterOn=Name&filterQuery=Track&sortBy=Name&isAscending=true&pageNumber=1&pageSize=10
+        */
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery)
+        public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery, 
+            [FromQuery] string? sortBy, [FromQuery] bool? isAscending = true,
+            [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000)
         {
-            var walksDomain = await walkRepository.GetWalksAsync();
+            // cannot send nullable boolean to parameter, so need to cast it to boolean
+            // if isAscending is null, cast it to true by default
+            var walksDomain = await walkRepository.GetWalksAsync(filterOn, filterQuery, 
+                sortBy, isAscending ?? true, pageNumber, pageSize);
             var walksDto = mapper.Map<List<WalkDto>>(walksDomain);
 
             return Ok(walksDto);

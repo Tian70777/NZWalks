@@ -20,7 +20,10 @@ namespace NZWalks.API.Repositories
             return walk;
         }
 
-        public async Task<List<Walk>> GetWalksAsync(string? filterOn = null, string? filterQuery = null)
+        public async Task<List<Walk>> GetWalksAsync(
+            string? filterOn = null, string? filterQuery = null, 
+            string? sortBy = null, bool isAscending = true,
+            int pageNumber = 1, int pageSize = 1000)
         {
             /* cau use a string in Include to include the region
             // to make it type-safe, can use a lambda expression (x => x.Difficulty)
@@ -38,15 +41,39 @@ namespace NZWalks.API.Repositories
             var walks = dbContext.Walks.Include("Difficulty").Include("Region").AsQueryable();
 
             // 1. apply filter
+            // if both filterOn and filterQuery are not null or empty
             if(string.IsNullOrWhiteSpace(filterOn) == false && string.IsNullOrWhiteSpace(filterQuery) == false)
             {
                 if(filterOn.Equals("Name", StringComparison.OrdinalIgnoreCase))
                 {
-                    walks = walks.Where(x => x.Name.Contains(filterQuery));
+                    // check in whcih column the filterQuery is contained, ignore upper or lower case
+                    if(filterOn.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                    {
+                        walks = walks.Where(x => x.Name.Contains(filterQuery));
+                    }
                 }
             }
 
-            return await walks.ToListAsync();
+            // 2. Sorting
+            if(string.IsNullOrWhiteSpace(sortBy) == false)
+            {
+                if(sortBy.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+                    walks = isAscending ? walks.OrderBy(x => x.Name) : walks.OrderByDescending(x => x.Name);
+                }   
+
+                else if(sortBy.Equals("LengthInKm", StringComparison.OrdinalIgnoreCase))
+                {
+                    walks = isAscending ? walks.OrderBy(x => x.LengthInKm) : walks.OrderByDescending(x => x.LengthInKm);
+                }
+            }
+
+            // 3. Pagination
+            // skip the first n-1 pages, take the last page
+            // if pageNumber = 1, skip 0, take 10
+            var skipResults = (pageNumber - 1) * pageSize;
+
+            return await walks.Skip(skipResults).Take(pageSize).ToListAsync();
         }
         public async Task<Walk?> GetByIdAsync(Guid id)
         {
